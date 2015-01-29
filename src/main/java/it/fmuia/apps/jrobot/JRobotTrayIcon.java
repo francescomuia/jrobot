@@ -18,6 +18,8 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 
 public class JRobotTrayIcon
 {
@@ -248,7 +250,7 @@ public class JRobotTrayIcon
 		{
 			this.editDialog.dispose();
 		}
-		if (!launcher.isDone())
+		if (launcher != null && !launcher.isDone())
 		{
 			launcher.interrupt();
 		}
@@ -303,6 +305,29 @@ public class JRobotTrayIcon
 			@Override
 			public void run()
 			{
+				try
+				{
+					for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels())
+					{
+						if ("Nimbus".equals(info.getName()))
+						{
+							UIManager.setLookAndFeel(info.getClassName());
+							break;
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					// If Nimbus is not available, fall back to cross-platform
+					try
+					{
+						UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+					}
+					catch (Exception ex)
+					{
+						// not worth my time
+					}
+				}
 				JRobotTrayIcon jrobot;
 				try
 				{
