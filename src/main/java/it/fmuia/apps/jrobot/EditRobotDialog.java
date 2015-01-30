@@ -55,7 +55,7 @@ public class EditRobotDialog extends JDialog implements TreeSelectionListener
 				doSave();
 			}
 		});
-
+		treeToolbar.add(saveButton);
 		this.removeNodeButton = new JButton("Cancella");
 		this.removeNodeButton.setEnabled(false);
 		this.removeNodeButton.addActionListener(new ActionListener()
@@ -135,7 +135,7 @@ public class EditRobotDialog extends JDialog implements TreeSelectionListener
 	{
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode) this.eventsTree.getSelectionPath().getLastPathComponent();
 		((DefaultTreeModel) this.eventsTree.getModel()).removeNodeFromParent(node);
-		RobotMouseEvent robotEvent = (RobotMouseEvent) node.getUserObject();
+		RobotEvent robotEvent = (RobotEvent) node.getUserObject();
 		this.robot.getEvents().remove(robotEvent);
 		this.enableDisableSaveButton();
 	}

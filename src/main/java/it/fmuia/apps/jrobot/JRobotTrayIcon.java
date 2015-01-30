@@ -21,6 +21,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.xml.DOMConfigurator;
+
 public class JRobotTrayIcon
 {
 	private static final String ROBOT_ICON = "/images/robot.png";
@@ -173,6 +176,17 @@ public class JRobotTrayIcon
 			}
 		});
 		item.add(start);
+		MenuItem startStepping = new MenuItem("Avvia in step");
+		startStepping.addActionListener(new ActionListener()
+		{
+
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				doLaunchStepping(jRobot);
+			}
+		});
+		item.add(startStepping);
 		MenuItem edit = new MenuItem("Modifica");
 		edit.addActionListener(new ActionListener()
 		{
@@ -197,6 +211,21 @@ public class JRobotTrayIcon
 		});
 		item.add(delete);
 		return item;
+	}
+
+	protected void doLaunchStepping(JRobot robot)
+	{
+		JRobotLauncherStepping jRobotLauncherStepping;
+		try
+		{
+			jRobotLauncherStepping = new JRobotLauncherStepping(robot, this.trayIcon);
+			jRobotLauncherStepping.start();
+		}
+		catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	protected void editRobot(JRobot jRobot)
@@ -276,6 +305,7 @@ public class JRobotTrayIcon
 			this.registerDialog = null;
 			this.popupMenu.remove(stopRecord);
 			this.popupMenu.insert(record, 2);
+			this.openItem.setEnabled(true);
 		}
 	}
 
@@ -298,7 +328,12 @@ public class JRobotTrayIcon
 
 	public static void main(String[] args) throws AWTException, IllegalArgumentException, IllegalAccessException
 	{
-
+		DOMConfigurator.configure(JRobotTrayIcon.class.getResource("/config/log4j.xml"));
+		Logger logger = Logger.getLogger(JRobotTrayIcon.class);
+		logger.info("INFO MESSAGE");
+		logger.debug("DEBUG MESSAGE");
+		logger.error("ERR MESSAGE");
+		logger.warn("WARN MESSAGE");
 		SwingUtilities.invokeLater(new Runnable()
 		{
 

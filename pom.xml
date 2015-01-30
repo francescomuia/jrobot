@@ -6,8 +6,42 @@
 	<artifactId>jrobot</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
+	<profiles>
+		<profile>
+			<id>development</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<log4j.priority>debug</log4j.priority>
+				<log4j.appender>stdout</log4j.appender>
+			</properties>
+		</profile>
+		<profile>
+			<id>production</id>
+			<properties>
+				<log4j.priority>error</log4j.priority>
+				<log4j.appender>file</log4j.appender>
+			</properties>
+		</profile>
+	</profiles>
+
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+
 			<plugin>
 				<groupId>com.github.github</groupId>
 				<artifactId>site-maven-plugin</artifactId>
@@ -183,7 +217,7 @@
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>it.fmuia.apps.jrobot.JRobot</mainClass>
+							<mainClass>it.fmuia.apps.jrobot.JRobotTrayIcon</mainClass>
 							<packageName>it.fmuia.apps.jrobot</packageName>
 						</manifest>
 

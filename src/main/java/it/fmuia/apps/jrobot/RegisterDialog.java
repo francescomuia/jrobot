@@ -309,7 +309,7 @@ public class RegisterDialog extends JDialog implements TreeSelectionListener, Na
 			globalHookManager.interrupt();
 		}
 		this.globalHookManager = null;
-
+		this.robot.aggregateMouseEvent();
 		this.robot.calculateTimes();
 		DefaultMutableTreeNode root = (DefaultMutableTreeNode) this.eventsTree.getModel().getRoot();
 		DefaultTreeModel model = (DefaultTreeModel) this.eventsTree.getModel();

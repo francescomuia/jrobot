@@ -11,7 +11,6 @@ import java.awt.Robot;
 import java.awt.TrayIcon;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,7 +18,10 @@ import java.io.ObjectInputStream;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
+
+import org.apache.log4j.Logger;
 
 public class JRobotLauncher extends SwingWorker<Void, Object>
 {
@@ -30,6 +32,8 @@ public class JRobotLauncher extends SwingWorker<Void, Object>
 	private Robot robot;
 
 	private TrayIcon tray;
+
+	Logger logger = Logger.getLogger(getClass());
 
 	public JRobotLauncher(JRobot jRobot) throws AWTException
 	{
@@ -81,20 +85,30 @@ public class JRobotLauncher extends SwingWorker<Void, Object>
 			Thread.currentThread().sleep(1000);
 		}
 		Iterator<RobotEvent> events = this.jRobot.getEvents().iterator();
-		while (events.hasNext() && !isInterrupted())
+		try
 		{
-			RobotEvent e = events.next();
-			this.publish(e);
-			if (e instanceof RobotKeyboardEvent)
+			while (events.hasNext() && !isInterrupted())
 			{
-				this.handleKeyboardEvent(e);
+				RobotEvent e = events.next();
+				this.publish(e);
+				this.robot.delay(1000);
+				if (e instanceof RobotKeyboardEvent)
+				{
+					this.handleKeyboardEvent(e);
+				}
+				else
+				{
+					this.handleMouseEvent(e);
+				}
 			}
-			else
-			{
-				this.handleMouseEvent(e);
-			}
+			this.publish(this.jRobot.getName() + " FINITO");
 		}
-		this.publish(this.jRobot.getName() + " FINITO");
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Si è verificato un errore durante l'esecuzione", "Errore", JOptionPane.ERROR_MESSAGE);
+			logger.error("ERRORE DURANTE L'ESECUZIONE ", e);
+		}
 		return null;
 	}
 
@@ -102,22 +116,17 @@ public class JRobotLauncher extends SwingWorker<Void, Object>
 	{
 		RobotMouseEvent evt = (RobotMouseEvent) e;
 		NativeMouseEvent nEvt = (NativeMouseEvent) evt.getValue();
+
 		robot.delay((int) evt.getTimeElapsed());
 		robot.mouseMove(nEvt.getX(), nEvt.getY());
-
-		if (MouseEvent.MOUSE_PRESSED == nEvt.getType())
-		{
-			robot.mousePress(InputEvent.getMaskForButton(nEvt.getMouseButton()));
-		}
-		else
-		{
-			robot.mouseRelease(InputEvent.getMaskForButton(nEvt.getMouseButton()));
-		}
+		robot.mousePress(InputEvent.getMaskForButton(nEvt.getMouseButton()));
+		robot.mouseRelease(InputEvent.getMaskForButton(nEvt.getMouseButton()));
 	}
 
 	private void handleKeyboardEvent(RobotEvent e)
 	{
 		RobotKeyboardEvent evt = (RobotKeyboardEvent) e;
+
 		robot.delay((int) evt.getTimeElapsed());
 		if (evt.isSpecial())
 		{
@@ -126,16 +135,41 @@ public class JRobotLauncher extends SwingWorker<Void, Object>
 				robot.keyPress(KeyEvent.VK_ENTER);
 				robot.keyRelease(KeyEvent.VK_ENTER);
 			}
+			else if (isValidKeyCode(evt.getKeycode()))
+			{
+				try
+				{
+					robot.keyPress(evt.getKeycode());
+					robot.keyRelease(evt.getKeycode());
+				}
+				catch (IllegalArgumentException ex)
+				{
+					logger.error("ERRORE DURANTE L'INSERIMENTO DI UN KEYCODE " + evt, ex);
+					int choose = JOptionPane.showConfirmDialog(null, "Si è verificato un errore durante la simulazione dell'evento " + evt
+							+ " Continuare ?", "Errore", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
+					if (!(JOptionPane.YES_OPTION == choose))
+					{
+						throw new RuntimeException(ex);
+					}
+				}
+			}
 			else
 			{
-				robot.keyPress(evt.getKeycode());
-				robot.keyRelease(evt.getKeycode());
+				logger.warn("INGNORATO KEY EVENT " + e);
 			}
 		}
 		else
 		{
 			this.writeString((String) evt.getValue());
 		}
+	}
+
+	private boolean isValidKeyCode(int keycode)
+	{
+		String text = KeyEvent.getKeyText(keycode);
+		logger.debug("IS VALID KEY CODE RETUR " + text);
+
+		return text != null && !text.isEmpty();
 	}
 
 	private void writeString(String s)

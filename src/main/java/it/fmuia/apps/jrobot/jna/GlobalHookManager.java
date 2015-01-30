@@ -10,8 +10,8 @@ import it.fmuia.apps.jrobot.jna.mouse.NativeMouseMotionListener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.User32;
@@ -22,6 +22,8 @@ import com.sun.jna.platform.win32.WinUser.MSG;
 
 public class GlobalHookManager extends Thread
 {
+	private static final Logger LOGGER = Logger.getLogger(GlobalHookManager.class);
+
 	private static GlobalHookManager instance;
 
 	private final User32 lib = User32.INSTANCE;
@@ -29,8 +31,6 @@ public class GlobalHookManager extends Thread
 	private final HMODULE hMod = Kernel32.INSTANCE.GetModuleHandle(null);
 
 	private boolean interrupted = false;
-
-	private static final Logger LOGGER = Logger.getLogger(GlobalHookManager.class.getCanonicalName());
 
 	private List<HHOOK> keyboardHookProcess;
 
@@ -81,6 +81,7 @@ public class GlobalHookManager extends Thread
 	{
 		for (KeyboardHookProcess hook : keyboardHook)
 		{
+			LOGGER.debug("INSTALL KEYBOARD HOOK " + keyboardHook);
 			HHOOK keyboardHook = lib.SetWindowsHookEx(WinUser.WH_KEYBOARD_LL, hook, hMod, 0);
 			hook.setHHOOK(keyboardHook);
 			keyboardHookProcess.add(keyboardHook);
@@ -123,12 +124,12 @@ public class GlobalHookManager extends Thread
 			{
 				if (!result)
 				{
-					LOGGER.log(Level.WARNING, "error in get message");
+					LOGGER.warn("error in get message");
 					break;
 				}
 				else
 				{
-					LOGGER.log(Level.INFO, "got message");
+					LOGGER.info("got message");
 					lib.TranslateMessage(msg);
 					lib.DispatchMessage(msg);
 				}

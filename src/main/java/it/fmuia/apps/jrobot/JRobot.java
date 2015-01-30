@@ -11,6 +11,7 @@ import it.fmuia.apps.jrobot.jna.mouse.NativeMouseEvent;
 import java.awt.AWTException;
 import java.awt.Rectangle;
 import java.awt.Robot;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
@@ -36,6 +37,28 @@ public class JRobot implements Serializable
 	{
 		this.name = name;
 		this.events = Collections.synchronizedList(new ArrayList<RobotEvent>());
+	}
+
+	public void aggregateMouseEvent()
+	{
+		List<RobotEvent> newRobotEvent = new ArrayList<RobotEvent>();
+		for (RobotEvent event : this.events)
+		{
+			if (event instanceof RobotMouseEvent)
+			{
+				RobotMouseEvent mEvent = (RobotMouseEvent) event;
+				NativeMouseEvent nEvent = (NativeMouseEvent) mEvent.getValue();
+				if (nEvent.getType() != MouseEvent.MOUSE_RELEASED)
+				{
+					newRobotEvent.add(event);
+				}
+			}
+			else
+			{
+				newRobotEvent.add(event);
+			}
+		}
+		this.events = newRobotEvent;
 	}
 
 	public void calculateTimes()
