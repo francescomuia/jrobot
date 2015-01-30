@@ -91,7 +91,7 @@ public class JRobotLauncher extends SwingWorker<Void, Object>
 			{
 				RobotEvent e = events.next();
 				this.publish(e);
-				this.robot.delay(1000);
+				this.robot.delay(500);
 				if (e instanceof RobotKeyboardEvent)
 				{
 					this.handleKeyboardEvent(e);
